@@ -177,10 +177,16 @@ class ForegroundService : Service() {
         } else {
             START_STICKY
         }
+    }    
+
+    inner class ForegroundServiceBinder : Binder() {
+        fun getService(): ForegroundService = this@ForegroundService
     }
 
+    private val binder = ForegroundServiceBinder()
+
     override fun onBind(intent: Intent?): IBinder? {
-        return null
+        return binder
     }
 
     override fun onDestroy() {
