@@ -95,9 +95,7 @@ class ForegroundServiceManager {
 		NotificationContent.updateData(context, argsMap)
 
 		bindToService(context)
-
 		service?.onStartCommand(nIntent, 0, 0)
-
 		unbindFromService(context)
 	}
 
@@ -114,7 +112,11 @@ class ForegroundServiceManager {
 		ForegroundTaskOptions.clearData(context)
 		ForegroundTaskData.clearData(context)
 		NotificationContent.clearData(context)
-		ContextCompat.startForegroundService(context, nIntent)
+		
+
+		bindToService(context)
+		service?.onStartCommand(nIntent, 0, 0)
+		unbindFromService(context)
 	}
 
 	/** Send data to TaskHandler. */
