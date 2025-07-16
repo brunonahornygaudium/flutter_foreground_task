@@ -60,7 +60,12 @@ class ForegroundServiceManager {
 		ForegroundTaskOptions.updateData(context, argsMap)
 		ForegroundTaskData.updateData(context, argsMap)
 		NotificationContent.updateData(context, argsMap)
-		ContextCompat.startForegroundService(context, nIntent)
+
+		try {
+			ContextCompat.startForegroundService(context, nIntent)
+		} catch (e: Exception) {
+			android.util.Log.e("ForegroundServiceManager", "Failed to update foreground service", e)
+		}
 	}
 
 	/** Stop the foreground service. */
@@ -76,7 +81,13 @@ class ForegroundServiceManager {
 		ForegroundTaskOptions.clearData(context)
 		ForegroundTaskData.clearData(context)
 		NotificationContent.clearData(context)
-		ContextCompat.startForegroundService(context, nIntent)
+		
+		try {
+			ContextCompat.startForegroundService(context, nIntent)			
+		}
+		catch(Exception e) {
+			android.util.Log.e("ForegroundServiceManager", "Failed to stop foreground service", e)
+		}
 	}
 
 	/** Send data to TaskHandler. */
