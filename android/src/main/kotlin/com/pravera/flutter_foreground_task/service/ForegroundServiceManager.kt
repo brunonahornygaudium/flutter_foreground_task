@@ -85,7 +85,7 @@ class ForegroundServiceManager {
 		try {
 			ContextCompat.startForegroundService(context, nIntent)			
 		}
-		catch(Exception e) {
+		catch (e: Exception) {
 			android.util.Log.e("ForegroundServiceManager", "Failed to stop foreground service", e)
 		}
 	}
