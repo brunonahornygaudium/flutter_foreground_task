@@ -280,6 +280,10 @@ class ForegroundService : Service() {
     private fun stopForegroundService() {
         RestartReceiver.cancelRestartAlarm(this)
 
+        val notification = createNotification()
+        val serviceId = notificationOptions.serviceId
+        startForeground(serviceId, notification)        
+
         releaseLockMode()
         stopForeground(true)
         stopSelf()
@@ -400,6 +404,7 @@ class ForegroundService : Service() {
     private fun updateNotification() {
         val serviceId = notificationOptions.serviceId
         val notification = createNotification()
+
         val nm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             getSystemService(NotificationManager::class.java)
         } else {
@@ -407,6 +412,8 @@ class ForegroundService : Service() {
             ContextCompat.getSystemService(this, NotificationManager::class.java)
         }
         nm?.notify(serviceId, notification)
+
+        startForeground(serviceId, notification)
     }
 
     @SuppressLint("WakelockTimeout")
