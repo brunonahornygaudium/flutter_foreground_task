@@ -277,9 +277,27 @@ class ForegroundService : Service() {
         _isRunningServiceState.update { true }
     }
 
-    private fun stopForegroundService() {
+    private fun attachForegroundTask() {
         RestartReceiver.cancelRestartAlarm(this)
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel()
+        }
+
+        val serviceId = notificationOptions.serviceId
+        val notification = createNotification()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(serviceId, notification, foregroundServiceTypes.value)
+        } else {
+            startForeground(serviceId, notification)
+        }
+    }
+
+    private fun stopForegroundService() {
+        attachForegroundTask()
+
+        RestartReceiver.cancelRestartAlarm(this)
+        
         releaseLockMode()
         stopForeground(true)
         stopSelf()
@@ -400,6 +418,9 @@ class ForegroundService : Service() {
     private fun updateNotification() {
         val serviceId = notificationOptions.serviceId
         val notification = createNotification()
+
+        attachForegroundTask()
+
         val nm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             getSystemService(NotificationManager::class.java)
         } else {
