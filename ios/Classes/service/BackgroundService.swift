@@ -156,7 +156,7 @@ class BackgroundService: NSObject {
   }
   
   private func requestNotification() {
-    if !notificationOptions.showNotification {
+    if !notificationOptions.showNotification || notificationContent.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
       return
     }
     
