@@ -45,14 +45,18 @@ class ForegroundService : Service() {
         private var taskLifecycleListeners = ForegroundTaskLifecycleListeners()
 
         fun addTaskLifecycleListener(listener: FlutterForegroundTaskLifecycleListener) {
+            sendLog("addTaskLifecycleListener() called")
             taskLifecycleListeners.addListener(listener)
         }
 
         fun removeTaskLifecycleListener(listener: FlutterForegroundTaskLifecycleListener) {
+            sendLog("removeTaskLifecycleListener() called")
             taskLifecycleListeners.removeListener(listener)
         }
 
         fun handleNotificationContentIntent(intent: Intent?) {
+
+            sendLog("handleNotificationContentIntent() called with intent: $intent")
             if (intent == null) return
 
             try {
@@ -71,6 +75,7 @@ class ForegroundService : Service() {
         }
 
         fun sendData(data: Any?) {
+            sendLog("sendData() called with data: $data")
             if (isRunningServiceState.value) {
                 task?.invokeMethod(ACTION_RECEIVE_DATA, data)
             }
@@ -118,10 +123,13 @@ class ForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        sendLog("onCreate() called")
         registerBroadcastReceiver()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        sendLog("onStartCommand() called with intent: $intent, flags: $flags, startId: $startId")
+
         isTimeout = false
         loadDataFromPreferences()
 
@@ -180,10 +188,12 @@ class ForegroundService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
+        sendLog("onBind() called with intent: $intent")
         return null
     }
 
     override fun onDestroy() {
+        sendLog("onDestroy() called")
         super.onDestroy()
         val isTimeout = this.isTimeout
         destroyForegroundTask(isTimeout)
@@ -202,6 +212,7 @@ class ForegroundService : Service() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        sendLog("onTaskRemoved() called with rootIntent: $rootIntent")
         super.onTaskRemoved(rootIntent)
         if (ForegroundServiceUtils.isSetStopWithTaskFlag(this)) {
             stopSelf()
@@ -211,6 +222,7 @@ class ForegroundService : Service() {
     }
 
     override fun onTimeout(startId: Int) {
+        sendLog("onTimeout(startId) called with startId: $startId")
         super.onTimeout(startId)
         isTimeout = true
         stopForegroundService()
@@ -219,6 +231,7 @@ class ForegroundService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onTimeout(startId: Int, fgsType: Int) {
+        sendLog("onTimeout(startId, fgsType) called with startId: $startId, fgsType: $fgsType")
         super.onTimeout(startId, fgsType)
         isTimeout = true
         stopForegroundService()
@@ -226,6 +239,7 @@ class ForegroundService : Service() {
     }
 
     private fun loadDataFromPreferences() {
+        sendLog("loadDataFromPreferences() called")
         foregroundServiceStatus = ForegroundServiceStatus.getData(applicationContext)
         foregroundServiceTypes = ForegroundServiceTypes.getData(applicationContext)
         if (::foregroundTaskOptions.isInitialized) { prevForegroundTaskOptions = foregroundTaskOptions }
@@ -239,6 +253,7 @@ class ForegroundService : Service() {
     }
 
     private fun registerBroadcastReceiver() {
+        sendLog("registerBroadcastReceiver() called")
         val intentFilter = IntentFilter().apply {
             addAction(ACTION_NOTIFICATION_BUTTON_PRESSED)
             addAction(ACTION_NOTIFICATION_PRESSED)
@@ -252,11 +267,13 @@ class ForegroundService : Service() {
     }
 
     private fun unregisterBroadcastReceiver() {
+        sendLog("unregisterBroadcastReceiver() called")
         unregisterReceiver(broadcastReceiver)
     }
 
     @SuppressLint("WrongConstant", "SuspiciousIndentation")
     private fun startForegroundService() {
+        sendLog("startForegroundService() called")
         RestartReceiver.cancelRestartAlarm(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -278,6 +295,7 @@ class ForegroundService : Service() {
     }
 
     private fun attachForegroundTask() {
+        sendLog("attachForegroundTask() called")
         RestartReceiver.cancelRestartAlarm(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -294,6 +312,7 @@ class ForegroundService : Service() {
     }
 
     private fun stopForegroundService() {
+        sendLog("stopForegroundService() called")
         attachForegroundTask()
 
         RestartReceiver.cancelRestartAlarm(this)
@@ -307,6 +326,7 @@ class ForegroundService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
+        sendLog("createNotificationChannel() called")
         val channelId = notificationOptions.channelId
         val channelName = notificationOptions.channelName
         val channelDesc = notificationOptions.channelDescription
@@ -329,6 +349,7 @@ class ForegroundService : Service() {
     }
 
     private fun createNotification(): Notification {
+        sendLog("createNotification() called")
         // notification icon
         val icon = notificationContent.icon
         val iconResId = getIconResId(icon)
@@ -416,6 +437,7 @@ class ForegroundService : Service() {
     }
 
     private fun updateNotification() {
+        sendLog("updateNotification() called")
         val serviceId = notificationOptions.serviceId
         val notification = createNotification()
 
@@ -432,6 +454,7 @@ class ForegroundService : Service() {
 
     @SuppressLint("WakelockTimeout")
     private fun acquireLockMode() {
+        sendLog("acquireLockMode() called")
         if (foregroundTaskOptions.allowWakeLock && (wakeLock == null || wakeLock?.isHeld == false)) {
             wakeLock =
                 (applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager).run {
@@ -454,6 +477,7 @@ class ForegroundService : Service() {
     }
 
     private fun releaseLockMode() {
+        sendLog("releaseLockMode() called")
         wakeLock?.let {
             if (it.isHeld) {
                 it.release()
@@ -470,6 +494,7 @@ class ForegroundService : Service() {
     }
 
     private fun createForegroundTask() {
+        sendLog("createForegroundTask() called")
         destroyForegroundTask()
 
         task = ForegroundTask(
@@ -482,15 +507,18 @@ class ForegroundService : Service() {
     }
 
     private fun updateForegroundTask() {
+        sendLog("updateForegroundTask() called")
         task?.update(taskEventAction = foregroundTaskOptions.eventAction)
     }
 
     private fun destroyForegroundTask(isTimeout: Boolean = false) {
+        sendLog("destroyForegroundTask() called with isTimeout: $isTimeout")
         task?.destroy(isTimeout)
         task = null
     }
 
     private fun getIconResId(icon: NotificationIcon?): Int {
+        sendLog("getIconResId() called with icon: $icon")
         try {
             val packageManager = applicationContext.packageManager
             val packageName = applicationContext.packageName
@@ -515,6 +543,7 @@ class ForegroundService : Service() {
     }
 
     private fun getContentIntent(): PendingIntent {
+        sendLog("getContentIntent() called")
         val packageManager = applicationContext.packageManager
         val packageName = applicationContext.packageName
         val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
@@ -536,6 +565,7 @@ class ForegroundService : Service() {
     }
 
     private fun getDeleteIntent(): PendingIntent {
+        sendLog("getDeleteIntent() called")
         val intent = Intent(ACTION_NOTIFICATION_DISMISSED).apply {
             setPackage(packageName)
         }
@@ -549,6 +579,7 @@ class ForegroundService : Service() {
     }
 
     private fun getRgbColor(rgb: String): Int? {
+        sendLog("getRgbColor() called with rgb: $rgb")
         val rgbSet = rgb.split(",")
         return if (rgbSet.size == 3) {
             Color.rgb(rgbSet[0].toInt(), rgbSet[1].toInt(), rgbSet[2].toInt())
@@ -558,6 +589,7 @@ class ForegroundService : Service() {
     }
 
     private fun getTextSpan(text: String, color: Int?): Spannable {
+        sendLog("getTextSpan() called with text: $text, color: $color")
         return if (color != null) {
             SpannableString(text).apply {
                 setSpan(ForegroundColorSpan(color), 0, length, 0)
@@ -571,6 +603,7 @@ class ForegroundService : Service() {
         buttons: List<NotificationButton>,
         needsRebuild: Boolean = false
     ): List<Notification.Action> {
+        sendLog("buildNotificationActions() called with buttons: $buttons, needsRebuild: $needsRebuild")
         val actions = mutableListOf<Notification.Action>()
         for (i in buttons.indices) {
             val intent = Intent(ACTION_NOTIFICATION_BUTTON_PRESSED).apply {
@@ -600,6 +633,7 @@ class ForegroundService : Service() {
         buttons: List<NotificationButton>,
         needsRebuild: Boolean = false
     ): List<NotificationCompat.Action> {
+        sendLog("buildNotificationCompatActions() called with buttons: $buttons, needsRebuild: $needsRebuild")
         val actions = mutableListOf<NotificationCompat.Action>()
         for (i in buttons.indices) {
             val intent = Intent(ACTION_NOTIFICATION_BUTTON_PRESSED).apply {
@@ -619,5 +653,14 @@ class ForegroundService : Service() {
         }
 
         return actions
+    }
+
+    fun sendLog(text: String) {
+        if (task != null) {
+            val timestamp = java.time.LocalDateTime.now().toString()
+            val logText = "[$timestamp] $text"
+
+            sendData(mapOf("type" to "log", "message" to logText))
+        }
     }
 }
