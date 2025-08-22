@@ -129,7 +129,7 @@ class ForegroundService : Service() {
         val isSetStopWithTaskFlag = ForegroundServiceUtils.isSetStopWithTaskFlag(this)
 
         if (action == ForegroundServiceAction.API_STOP) {
-            stopForegroundService()
+            stopForegroundService(true)
             return START_NOT_STICKY
         }
 
@@ -169,7 +169,7 @@ class ForegroundService : Service() {
             }
         } catch (e: Exception) {
             Log.e(TAG, e.message, e)
-            stopForegroundService()
+            stopForegroundService(true)
         }
 
         return if (isSetStopWithTaskFlag) {
@@ -187,7 +187,7 @@ class ForegroundService : Service() {
         super.onDestroy()
         val isTimeout = this.isTimeout
         destroyForegroundTask(isTimeout)
-        stopForegroundService()
+        stopForegroundService(false)
         unregisterBroadcastReceiver()
 
         var isCorrectlyStopped = false
@@ -213,7 +213,7 @@ class ForegroundService : Service() {
     override fun onTimeout(startId: Int) {
         super.onTimeout(startId)
         isTimeout = true
-        stopForegroundService()
+        stopForegroundService(false)
         Log.e(TAG, "The service(id: $startId) timed out and was terminated by the system.")
     }
 
@@ -221,7 +221,7 @@ class ForegroundService : Service() {
     override fun onTimeout(startId: Int, fgsType: Int) {
         super.onTimeout(startId, fgsType)
         isTimeout = true
-        stopForegroundService()
+        stopForegroundService(false)
         Log.e(TAG, "The service(id: $startId) timed out and was terminated by the system.")
     }
 
@@ -293,8 +293,10 @@ class ForegroundService : Service() {
         }
     }
 
-    private fun stopForegroundService() {
-        attachForegroundTask()
+    private fun stopForegroundService(shouldReattach: Boolean) {
+        if (shouldReattach) {
+            attachForegroundTask()
+        }
 
         RestartReceiver.cancelRestartAlarm(this)
         
