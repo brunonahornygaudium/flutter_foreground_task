@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.intArrayOf
+import java.util.concurrent.Executors
 
 /**
  * A service class for implementing foreground service.
@@ -95,6 +96,9 @@ class ForegroundService : Service() {
     private var wifiLock: WifiManager.WifiLock? = null
 
     private var isTimeout: Boolean = false
+
+    // Executor para tocar sons em thread separada
+    private val soundExecutor = Executors.newSingleThreadExecutor()
 
     // A broadcast receiver that handles intents that occur in the foreground service.
     private var broadcastReceiver = object : BroadcastReceiver() {
@@ -190,6 +194,7 @@ class ForegroundService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        soundExecutor.shutdown()
         val isTimeout = this.isTimeout
         destroyForegroundTask(isTimeout)
         stopForegroundService(false)
@@ -531,12 +536,15 @@ class ForegroundService : Service() {
         Log.i(TAG, "playCustomSound: sound = ${notificationContent.sound}")
         val sound = notificationContent.sound ?: return
         val uri = getSoundUri(sound) ?: return
-        
-        try {
-            val r = RingtoneManager.getRingtone(applicationContext, uri)
-            r.play()
-        } catch (e: Exception) {
-            Log.e(TAG, "playSound($uri)", e)
+
+        // Tocar o som em thread separada
+        soundExecutor.execute {
+            try {
+                val r = RingtoneManager.getRingtone(applicationContext, uri)
+                r?.play()
+            } catch (e: Exception) {
+                Log.e(TAG, "playSound($uri)", e)
+            }
         }
     }
 
